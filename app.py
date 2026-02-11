@@ -605,7 +605,7 @@ with col_brand:
 
 with col_tabs:
     # Custom Radio Tabs
-    tab_choice = st.radio("Nav", ["Executive Overview", "Deep Dive & Insights"], horizontal=True, label_visibility="collapsed")
+    tab_choice = st.radio("Nav", ["Overview", "Insights"], horizontal=True, label_visibility="collapsed")
 
 with col_type:
     # Professional pill-style toggle for Type
@@ -645,7 +645,7 @@ avp_metrics['Realized Value'] = avp_metrics['C3'] / 10000000
 # ==========================================
 # MAIN CONTENT
 # ==========================================
-if tab_choice == "Executive Overview":
+if tab_choice == "Overview":
 
 
 
@@ -1017,76 +1017,46 @@ else:
     rev_col1, rev_col2 = st.columns(2)
     
     with rev_col1:
-        st.markdown('<div class="chart-header">Revenue Shares By Brands</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-header">Top 10 Brands</div>', unsafe_allow_html=True)
         # Top brands revenue concentration + Others
         brand_revenue = filtered_df.groupby('Brand Name')['C3'].sum().sort_values(ascending=False)
         total_revenue = brand_revenue.sum()
         
         if total_revenue > 0:
-            top_5 = brand_revenue.head(5)
-            others_sum = brand_revenue.iloc[5:].sum()
+            top_10 = brand_revenue.head(10)
             treemap_df = pd.DataFrame([
                 {'Brand': b, 'Revenue (Cr)': v / 10000000, 'Share': (v / total_revenue * 100)}
-                for b, v in top_5.items()
+                for b, v in top_10.items()
             ])
             
-            if others_sum > 0:
-                others_row = pd.DataFrame([{
-                    'Brand': 'Others',
-                    'Revenue (Cr)': others_sum / 10000000,
-                    'Share': (others_sum / total_revenue * 100)
-                }])
-                treemap_df = pd.concat([treemap_df, others_row], ignore_index=True)
-                
-            # Professional color palette - sophisticated gradient
+            # Professional color palette - sophisticated gradient (extended for 10 items)
             color_palette = [
-                '#0A4D68',  # Deep teal (darkest)
-                '#088395',  # Ocean blue
-                '#05BFDB',  # Bright cyan
-                '#00D9FF',  # Vibrant cyan
-                '#7FDBFF',  # Light cyan
-                '#B8E6F0'   # Pale cyan (lightest - for Others)
+                '#0A4D68', '#088395', '#05BFDB', '#00D9FF', '#42A5F5',
+                '#64B5F6', '#90CAF9', '#BBDEFB', '#E3F2FD', '#F1F8E9' # Adjusted for 10 items
             ]
             
             # Assign colors based on revenue (highest to lowest)
             treemap_df['Color'] = color_palette[:len(treemap_df)]
             
-            # Determine text color based on background brightness
-            def get_text_color(hex_color):
-                # Convert hex to RGB
-                hex_color = hex_color.lstrip('#')
-                r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-                # Calculate luminance
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-                return '#FFFFFF' if luminance < 0.6 else '#1A1A1A'
-            
-            treemap_df['TextColor'] = treemap_df['Color'].apply(get_text_color)
-            
-            fig_brands = px.treemap(
-                treemap_df,
-                path=['Brand'],
-                values='Revenue (Cr)',
-                color='Color',
-                color_discrete_map={c: c for c in color_palette}
-            )
-            
-            fig_brands.update_traces(
-                textinfo="label+text",
+            fig_brands = go.Figure(go.Treemap(
+                labels=treemap_df['Brand'].tolist(),
+                parents=[""] * len(treemap_df),
+                values=treemap_df['Revenue (Cr)'].tolist(),
                 text=[f"₹{r:.1f}Cr ({s:.1f}%)" for r, s in zip(treemap_df['Revenue (Cr)'], treemap_df['Share'])],
-                hovertemplate='<b>%{label}</b><br>Revenue: ₹%{value:.2f}Cr<extra></extra>',
-                textfont=dict(size=11),
+                hovertext=[f"₹{r:.1f}Cr ({s:.1f}%)" for r, s in zip(treemap_df['Revenue (Cr)'], treemap_df['Share'])],
+                hovertemplate='<b>%{label}</b><br>%{hovertext}<extra></extra>',
+                textinfo="label+text",
                 marker=dict(
                     colors=treemap_df['Color'].tolist(),
                     line=dict(color='#2C2C2C', width=2)
                 )
-            )
+            ))
             
             fig_brands.update_layout(
                 height=250,
                 margin=dict(t=5, b=5, l=5, r=5),
                 paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                coloraxis_showscale=False
+                plot_bgcolor="rgba(0,0,0,0)"
             )
             st.plotly_chart(fig_brands, use_container_width=True, config={'displayModeBar': False})
         else:

@@ -234,8 +234,8 @@ st.markdown("""
     }
     
     .scroll-area {
-        height: 207px !important; /* Synced with Funnel Chart height */
-        max-height: 207px !important;
+        height: 235px !important; /* Increased from 207px to show TOTAL row */
+        max-height: 235px !important;
         overflow-y: hidden; /* Remove scrollbar */
     }
 
@@ -387,7 +387,7 @@ st.markdown("""
         .dashboard-title { font-size: 1.5rem !important; }
         .pipeline-table { font-size: 0.85rem; }
         .chart-header { font-size: 1.05rem; }
-        .scroll-area { height: 207px !important; max-height: 207px !important; }
+        .scroll-area { height: 235px !important; max-height: 235px !important; }
     }
     
     /* MacBook Pro 13" & Medium Laptops (1440px - 1511px) */
@@ -396,7 +396,7 @@ st.markdown("""
         .pipeline-table { font-size: 0.8rem; }
         .pipeline-table th, .pipeline-table td { padding: 0.6rem 0.8rem; }
         .chart-header { font-size: 1rem; }
-        .scroll-area { height: 207px !important; max-height: 207px !important; }
+        .scroll-area { height: 235px !important; max-height: 235px !important; }
         .header-container { padding: 0.4rem 0 0.6rem 0 !important; }
     }
     
@@ -406,7 +406,7 @@ st.markdown("""
         .pipeline-table { font-size: 0.75rem; }
         .pipeline-table th, .pipeline-table td { padding: 0.5rem 0.7rem; }
         .chart-header { font-size: 0.95rem; }
-        .scroll-area { height: 207px !important; max-height: 207px !important; }
+        .scroll-area { height: 235px !important; max-height: 235px !important; }
         .insights-scroll-area { max-height: 220px; }
         .header-container { padding: 0.3rem 0 0.5rem 0 !important; }
         [data-testid="stHorizontalBlock"] { gap: 0.4rem !important; }
@@ -418,7 +418,7 @@ st.markdown("""
         .pipeline-table { font-size: 0.7rem; }
         .pipeline-table th, .pipeline-table td { padding: 0.4rem 0.6rem; }
         .chart-header { font-size: 0.9rem; }
-        .scroll-area { height: 207px !important; max-height: 207px !important; }
+        .scroll-area { height: 235px !important; max-height: 235px !important; }
         .insights-scroll-area { max-height: 200px; }
         [data-testid="stHorizontalBlock"] {
             flex-wrap: wrap !important;
@@ -433,7 +433,7 @@ st.markdown("""
         .pipeline-table { font-size: 0.65rem; }
         .pipeline-table th, .pipeline-table td { padding: 0.35rem 0.5rem; }
         .chart-header, .stMarkdown h3 { font-size: 0.85rem !important; }
-        .scroll-area { height: 207px !important; max-height: 207px !important; }
+        .scroll-area { height: 235px !important; max-height: 235px !important; }
         .insights-scroll-area { max-height: 180px; }
         [data-testid="stHorizontalBlock"] {
             flex-wrap: wrap !important;
@@ -472,11 +472,12 @@ st.markdown("""
     div[data-testid="stRadio"] div[role="radiogroup"] {
         background-color: #16181C !important;
         border-radius: 100px !important;
-        padding: 2px !important; /* Reduced from 4px */
-        gap: 2px !important; /* Reduced from 4px */
+        padding: 2px !important;
+        gap: 2px !important;
         border: 1px solid #2F3336 !important;
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: nowrap !important;
         width: fit-content !important;
         margin-top: 2px !important;
     }
@@ -484,14 +485,14 @@ st.markdown("""
     div[data-testid="stRadio"] div[role="radiogroup"] label {
         background-color: transparent !important;
         border-radius: 100px !important;
-        padding: 4px 12px !important; /* Reduced from 6px 16px */
+        padding: 4px 10px !important; /* Slightly reduced horizontal padding */
         margin: 0 !important;
         cursor: pointer !important;
         transition: all 0.2s ease-in-out !important;
         flex: 1 !important;
-        min-width: 70px !important; /* Reduced from 80px */
+        min-width: 60px !important; /* Reduced from 70px to prevent overflow */
         justify-content: center !important;
-        white-space: nowrap !important; /* Prevent text wrap */
+        white-space: nowrap !important;
     }
 
     /* Hide the default radio circle/dot */
@@ -537,6 +538,12 @@ st.markdown("""
         padding-top: 1.5rem !important; /* Reduced from 3.5rem */
     }
     
+    /* Fix button height and prevent wrapping */
+    div.stButton > button {
+        height: 38px !important;
+        white-space: nowrap !important;
+        margin-top: 2px !important;
+    }
 
 </style>
 """, unsafe_allow_html=True)
@@ -578,8 +585,8 @@ def prepare_shared_data(filtered_df):
 
 # --- Consolidated Header Row ---
 st.markdown('<div class="header-container">', unsafe_allow_html=True)
-# Ratios: Logo/Title, Nav Tabs, Type Toggle, Month, SBUs
-col_brand, col_tabs, col_type, col_month, col_sbu = st.columns([1.8, 1.6, 1.0, 1.0, 1.0])
+# Ratios: Logo/Title, Nav, Type, Month, SBUs, Refresh
+col_brand, col_nav, col_type, col_month, col_sbu, col_refresh = st.columns([1.6, 1.0, 1.0, 1.0, 1.0, 0.7])
 
 with col_brand:
     # Look for common logo filenames
@@ -603,12 +610,10 @@ with col_brand:
     else:
         st.markdown(f'<div class="dashboard-title">Schbang C0-C3</div>', unsafe_allow_html=True)
 
-with col_tabs:
-    # Custom Radio Tabs
+with col_nav:
     tab_choice = st.radio("Nav", ["Overview", "Insights"], horizontal=True, label_visibility="collapsed")
 
 with col_type:
-    # Professional pill-style toggle for Type
     selected_type = st.radio("Type", options=["VAS", "Retainer"], index=0, horizontal=True, label_visibility="collapsed")
 
 with col_month:
@@ -618,6 +623,11 @@ with col_month:
 with col_sbu:
     sbu_options = sorted(df['SBUs'].dropna().unique().tolist())
     selected_sbu = st.multiselect("SBUs", options=sbu_options, placeholder="SBUs", label_visibility="collapsed")
+
+with col_refresh:
+    if st.button("🔄 Refresh", type="secondary", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -689,7 +699,7 @@ if tab_choice == "Overview":
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#E7E9EA", size=10),
-        height=207,
+        height=235, # Updated from 207
         showlegend=False,
         yaxis=dict(
             showticklabels=False,
@@ -860,11 +870,17 @@ else:
     avp_perf['Closed Revenue (Cr)'] = avp_perf['C3'] / 10000000
 
     
-    # ROW 1: Pipeline Conversion Funnel Analytics
-    conv_col1, conv_col2 = st.columns([1.6, 1])
+    # ROW 1 HEADERS: Aligned Titles
+    title_col1, title_spacer, title_col2 = st.columns([1.6, 0.04, 1])
+    with title_col1:
+        st.markdown('<div class="chart-header">Stage Conversion Rates</div>', unsafe_allow_html=True)
+    with title_col2:
+        st.markdown('<div class="chart-header">Pipeline Health Metrics</div>', unsafe_allow_html=True)
+
+    # ROW 1 CONTENT: Pipeline Conversion Funnel Analytics
+    conv_col1, conv_spacer, conv_col2 = st.columns([1.6, 0.04, 1])
     
     with conv_col1:
-        st.markdown('<div class="chart-header">Stage Conversion Rates</div>', unsafe_allow_html=True)
         # Calculate stage-wise deal counts
         total_deals = len(filtered_df)
         deals_with_c0 = filtered_df['C0 (Ideation/ Brainstorming Stage)'].notna().sum()
@@ -914,7 +930,6 @@ else:
         st.plotly_chart(fig_conv, use_container_width=True, config={'displayModeBar': False})
     
     with conv_col2:
-        st.markdown('<div class="chart-header">Pipeline Health Metrics</div>', unsafe_allow_html=True)
         # Metrics logic follows below
 
         # Find bottleneck (lowest conversion rate)
@@ -924,7 +939,7 @@ else:
         
         # Create metrics HTML manually to keep inside container
         metrics_html = f"""
-        <div style='height: 250px; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.8rem;'>
+        <div style='height: 250px; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.8rem; box-sizing: border-box;'>
             <div style='display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0.6rem; height: 100%;'>
                 <div style='background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; display: flex; flex-direction: column; justify-content: center;'>
                     <div style='font-size: 0.75rem; color: #8B949E; margin-bottom: 0.3rem;'>Total Deals</div>
@@ -1013,11 +1028,17 @@ else:
     
     st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
     
-    # ROW 3: Revenue Analysis
-    rev_col1, rev_col2 = st.columns(2)
+    # ROW 3 HEADERS: Aligned Titles
+    rev_title_col1, rev_title_spacer, rev_title_col2 = st.columns([1, 0.04, 1])
+    with rev_title_col1:
+        st.markdown('<div class="chart-header">Top 10 Brands</div>', unsafe_allow_html=True)
+    with rev_title_col2:
+        st.markdown('<div class="chart-header">Pipeline vs Closed Revenue Trends (with Forecast)</div>', unsafe_allow_html=True)
+
+    # ROW 3 CONTENT: Revenue Analysis
+    rev_col1, rev_spacer, rev_col2 = st.columns([1, 0.04, 1])
     
     with rev_col1:
-        st.markdown('<div class="chart-header">Top 10 Brands</div>', unsafe_allow_html=True)
         # Top brands revenue concentration + Others
         brand_revenue = filtered_df.groupby('Brand Name')['C3'].sum().sort_values(ascending=False)
         total_revenue = brand_revenue.sum()
@@ -1054,7 +1075,7 @@ else:
             
             fig_brands.update_layout(
                 height=250,
-                margin=dict(t=5, b=5, l=5, r=5),
+                margin=dict(t=15, b=15, l=15, r=15),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)"
             )
@@ -1063,7 +1084,6 @@ else:
             st.info("No C3 revenue data available for current selection.")
     
     with rev_col2:
-        st.markdown('<div class="chart-header">Pipeline vs Closed Revenue Trends (with Forecast)</div>', unsafe_allow_html=True)
         # Monthly trend with insights
         monthly_trend = agg_df.copy()
         monthly_trend['C0_Cr'] = monthly_trend['C0'] / 10000000
